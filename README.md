@@ -224,17 +224,22 @@ http://localhost:5000
 ---
 
 ## 🗂️ Project Structure
+
 DefenSight AI/
-├── DefenSight AI_db/          # ChromaDB vector database (auto-generated)
-├── incoming_logs/             # (Optional) live ingest watch folder
-├── instance/                  # Flask instance folder
-├── normalized/                # Normalized JSON output files
-├── project_screenshots/       # Screenshots used in README
-├── raw_data/                  # Uploaded raw logs (CSV/XML/JSON/LOG/TXT)
-├── static/                    # CSS & JavaScript assets
+│
+├── DefenSight AI_db/           # ChromaDB vector database (auto-generated)
+│
+├── incoming_logs/              # (Optional) live-ingest watch folder
+├── instance/                   # Flask instance folder
+├── normalized/                 # Normalized JSON output files
+├── project_screenshots/        # Screenshots used in README
+├── raw_data/                   # Uploaded raw logs (CSV/XML/JSON/LOG/TXT)
+│
+├── static/                     # CSS & JavaScript assets
 │   ├── styles.css
 │   └── assistant.js
-├── templates/                 # HTML UI Pages
+│
+├── templates/                  # HTML UI Pages
 │   ├── base.html
 │   ├── login.html
 │   ├── register.html
@@ -242,20 +247,21 @@ DefenSight AI/
 │   ├── normalized_list.html
 │   ├── normalize.html
 │   └── index.html
-├── test_data/                 # Sample logs for demo/testing
-│   └── ...
 │
-├── .env.example               # Environment variable template
-├── .gitignore                 # Git ignore rules
-├── auth.py                    # Authentication logic (Flask-Login + bcrypt)
-├── chat.py                    # CLI chat utility (optional)
-├── format_con.py              # Log normalization engine
-├── gui_app.py                 # Main Flask Web Application
-├── LICENSE                    # MIT License
-├── live_ingest.py             # Real-time log ingestion pipeline
-├── rag_engine.py              # RAG pipeline + Groq API integration
-├── README.md                  # Project documentation
-└── requirements.txt           # Python dependencies
+├── test_data/                  # Sample logs for demo/testing
+│
+├── .env.example                # Environment variable template
+├── .gitignore                  # Git ignore rules
+│
+├── auth.py                     # Authentication logic (Flask-Login + bcrypt)
+├── chat.py                     # CLI chat utility (optional)
+├── format_con.py               # Log normalization engine
+├── gui_app.py                  # Main Flask Web Application
+├── LICENSE                     # MIT License
+├── live_ingest.py              # Real-time log ingestion pipeline
+├── rag_engine.py               # RAG pipeline + Groq API integration
+├── README.md                   # Project documentation
+└── requirements.txt            # Python dependencies
 
 ---
 
