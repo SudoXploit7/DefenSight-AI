@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis & Chat – DefenSight AI{% endblock %}
+
+{% block head %}
+<style>
+  .btn-download {
+    background: linear-gradient(135deg, #22c55e, #4ade80);
+    border: none;
+    color: #022c22;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    box-shadow: 0 8px 20px rgba(22, 163, 74, 0.35);
+  }
+  .btn-download:hover {
+    filter: brightness(1.06);
+    color: #022c22;
+  }
+
+  .tab-btn {
+    background: #020617;
+    color: #e5e7eb;
+    border: 1px solid #1f2937;
+    padding: 8px 16px;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    margin-right: 4px;
+    font-weight: 500;
+    font-size: 0.85rem;
+  }
+  .tab-btn.active {
+    background: #0b1120;
+    color: #bbf7d0;
+    border-bottom: 1px solid transparent;
+  }
+
+  .tab-content-box {
+    background: #020617;
+    border: 1px solid #1f2937;
+    border-radius: 0 8px 8px 8px;
+    padding: 16px;
+    margin-top: -1px;
+    min-height: 60vh;
+  }
+  .summary-content {
+    font-size: 0.9rem;
+    max-height: calc(60vh - 40px);
+    overflow-y: auto;
+  }
+
+  .fab {
+    position: fixed;
+    bottom: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    cursor: pointer;
+    z-index: 1100;
+    font-size: 26px;
+    color: #020617;
+  }
+  .chat-fab {
+    right: 24px;
+    background: linear-gradient(135deg, #22c55e, #0ea5e9);
+  }
+  .fab:hover { filter: brightness(1.06); }
+
+  .floating-widget {
+    position: fixed;
+    right: 24px;
+    bottom: 92px;
+    width: 360px;
+    max-width: 90vw;
+    background: #020617;
+    border-radius: 14px;
+    border: 1px solid #1f2937;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.8);
+    z-index: 1100;
+    display: none;
+    overflow: hidden;
+    font-size: 0.85rem;
+  }
+  .chat-header {
+    padding: 10px 12px;
+    border-bottom: 1px solid #1f2937;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+  }
+  .chat-header span { font-weight: 600; }
+  .chat-close {
+    cursor: pointer;
+    font-size: 1.1rem;
+    color: #9ca3af;
+  }
+  .chat-box {
+    max-height: 260px;
+    min-height: 180px;
+    overflow-y: auto;
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+  .chat-msg-user {
+    padding: 6px 8px;
+    margin-bottom: 6px;
+    background: rgba(59, 130, 246, 0.25);
+    border-left: 3px solid #3b82f6;
+    border-radius: 8px;
+  }
+  .chat-msg-ai {
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    background: rgba(34, 197, 94, 0.18);
+    border-left: 3px solid #22c55e;
+    border-radius: 8px;
+  }
+  .chat-input-area {
+    border-top: 1px solid #1f2937;
+    padding: 8px;
+  }
+  .chat-input-area textarea,
+  .email-input {
+    font-size: 0.85rem;
+    resize: none;
+    background-color: #020617;
+    color: #e5e7eb;
+    border: 1px solid #4b5563;
+  }
+  .chat-send-btn,
+  .email-send-btn {
+    margin-top: 6px;
+    width: 100%;
+    background: linear-gradient(135deg, #22c55e, #0ea5e9);
+    border: none;
+    color: #020617;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 6px 10px;
+  }
+  .email-body {
+    max-height: 120px;
+    min-height: 70px;
+  }
+  .email-status {
+    font-size: 0.78rem;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    display: block;
+    color: #e5e7eb;
+  }
+  .email-status.text-muted {
+    color: #9ca3af !important;
+  }
+  .email-status.text-success {
+    color: #22c55e !important;
+  }
+  .email-status.text-danger {
+    color: #f97373 !important;
+  }
+  #emailStatus {
+    font-size: 0.8rem;
+    margin-top: 6px;
+    padding: 3px 6px;
+    display: inline-block;
+    border-radius: 6px;
+    background: rgba(34, 197, 94, 0.15) !important;
+    color: #bbf7d0 !important;
+  }
+  #emailStatus.success {
+    background: rgba(34, 197, 94, 0.25) !important;
+    color: #4ade80 !important;
+  }
+  #emailStatus.error {
+    background: rgba(239, 68, 68, 0.25) !important;
+    color: #fca5a5 !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- LOGOUT BUTTON - Positioned left of forward/back buttons -->
+<div style="position: fixed; top: 20px; right: 220px; display: flex; align-items: center; gap: 15px; z-index: 1050; background: rgba(2, 6, 23, 0.95); padding: 10px 15px; border-radius: 10px; border: 1px solid rgba(34, 211, 238, 0.2);">
+    <span style="color: #22d3ee; font-weight: 500; font-size: 0.9rem;">
+        👤 {{ current_user.username }}
+    </span>
+    <a href="{{ url_for('logout') }}" style="
+        background: rgba(34, 211, 238, 0.1);
+        border: 1px solid rgba(34, 211, 238, 0.3);
+        color: #22d3ee;
+        padding: 6px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    " onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" 
+       onmouseout="this.style.background='rgba(34, 211, 238, 0.1)'">
+        Logout
+    </a>
+</div>
+
+<!-- HEADER -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="h5 mb-1">DefenSight AI – Security Analysis Dashboard</h2>
+    <p class="small-muted mb-0">
+      Generated from your latest normalized firewall, IDS, VPN and system logs.
+    </p>
+  </div>
+
+  <!-- RIGHT ACTIONS: Download + Email (same visual style) -->
+  <div class="d-flex align-items-center gap-2">
+    <!-- Download PDF (fixed endpoint) -->
+    <a href="{{ url_for('download_report') }}"
+       class="btn-download">
+       Download PDF Report
+    </a>
+
+    <!-- Email Report – opens email widget instead of link -->
+    <button type="button"
+            id="emailToggle"
+            class="btn-download"
+            style="background: linear-gradient(135deg, #3b82f6, #60a5fa); box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);">
+       Email Report
+    </button>
+  </div>
+</div>
+
+<!-- SUMMARIES (tabs) -->
+<div class="card-main">
+  <div class="mb-2">
+    <button class="tab-btn active" id="tabTech">Technical Summary</button>
+    <button class="tab-btn" id="tabExec">Executive Summary</button>
+  </div>
+
+  <div class="tab-content-box">
+    <div id="techContent" class="summary-content">
+      {{ technical|safe }}
+    </div>
+    <div id="execContent" class="summary-content" style="display:none;">
+      {{ executive|safe }}
+    </div>
+  </div>
+</div>
+
+<!-- FLOATING CHAT BUTTON (kept as before) -->
+<button class="fab chat-fab" id="chatToggle" title="Ask DefenSight AI">
+  💬
+</button>
+
+<!-- CHAT WIDGET -->
+<div class="floating-widget" id="chatWidget">
+  <div class="chat-header">
+    <span>DefenSight AI Assistant</span>
+    <span class="chat-close" id="chatClose">&times;</span>
+  </div>
+  <div id="chat-box" class="chat-box"></div>
+  <div class="chat-input-area">
+    <form id="chat-form">
+      <textarea id="chat-input" class="form-control" rows="2"
+                placeholder="Ask about risks, misconfigurations, anomalies…"></textarea>
+      <button type="submit" class="chat-send-btn mt-1">
+        Send
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- EMAIL WIDGET (opened by Email Report button) -->
+<div class="floating-widget" id="emailWidget">
+  <div class="chat-header">
+    <span>Email Report</span>
+    <span class="chat-close" id="emailClose">&times;</span>
+  </div>
+  <div class="p-3">
+    <div class="mb-2">
+      <label class="form-label mb-1" style="font-size: 0.8rem;">To</label>
+      <input type="email" id="email-to" class="form-control email-input"
+             placeholder="recipient@example.com" />
+    </div>
+    <div class="mb-2">
+      <label class="form-label mb-1" style="font-size: 0.8rem;">Subject</label>
+      <input type="text" id="email-subject" class="form-control email-input"
+             placeholder="DefenSight AI - Security Analysis Report" />
+    </div>
+    <div class="mb-2">
+      <label class="form-label mb-1" style="font-size: 0.8rem;">Message</label>
+      <textarea id="email-body" class="form-control email-input email-body"
+                placeholder="Please find attached the DefenSight AI security analysis report."></textarea>
+    </div>
+    <div id="email-status" class="email-status text-muted"></div>
+    <button type="button" class="email-send-btn mt-2" onclick="sendReportEmail()">
+      Send Report
+    </button>
+  </div>
+</div>
+
+<script>
+  // Tabs
+  const tabTech = document.getElementById("tabTech");
+  const tabExec = document.getElementById("tabExec");
+  const techBox = document.getElementById("techContent");
+  const execBox = document.getElementById("execContent");
+
+  tabTech.addEventListener("click", () => {
+    tabTech.classList.add("active");
+    tabExec.classList.remove("active");
+    techBox.style.display = "block";
+    execBox.style.display = "none";
+  });
+
+  tabExec.addEventListener("click", () => {
+    tabExec.classList.add("active");
+    tabTech.classList.remove("active");
+    techBox.style.display = "none";
+    execBox.style.display = "block";
+  });
+
+  // Chat widget
+  const chatToggle = document.getElementById("chatToggle");
+  const chatWidget = document.getElementById("chatWidget");
+  const chatClose = document.getElementById("chatClose");
+  const chatBox = document.getElementById("chat-box");
+  const chatForm = document.getElementById("chat-form");
+  const chatInput = document.getElementById("chat-input");
+
+  chatToggle.addEventListener("click", () => {
+    chatWidget.style.display =
+      chatWidget.style.display === "block" ? "none" : "block";
+  });
+  chatClose.addEventListener("click", () => {
+    chatWidget.style.display = "none";
+  });
+
+  function appendMessage(role, html) {
+    const div = document.createElement("div");
+    div.className = role === "user" ? "chat-msg-user" : "chat-msg-ai";
+    div.innerHTML =
+      "<strong>" + (role === "user" ? "You:" : "DefenSight AI:") +
+      "</strong><br>" + html;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  chatForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const msg = chatInput.value.trim();
+    if (!msg) return;
+
+    appendMessage("user", msg);
+    chatInput.value = "";
+    appendMessage("ai", "<em>Thinking…</em>");
+
+    try {
+      const res = await fetch("{{ url_for('chat') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg }),
+      });
+      const data = await res.json();
+      chatBox.removeChild(chatBox.lastChild);
+      appendMessage("ai", data.reply);
+    } catch (err) {
+      chatBox.removeChild(chatBox.lastChild);
+      appendMessage("ai", "❌ Network error.");
+    }
+  });
+
+  // Email widget toggle (now driven by top button)
+  const emailToggle = document.getElementById("emailToggle");
+  const emailWidget = document.getElementById("emailWidget");
+  const emailClose = document.getElementById("emailClose");
+  const emailTo = document.getElementById("email-to");
+  const emailSubject = document.getElementById("email-subject");
+  const emailBody = document.getElementById("email-body");
+  const emailStatus = document.getElementById("email-status");
+
+  emailToggle.addEventListener("click", () => {
+    emailStatus.textContent = "";
+    emailStatus.className = "email-status text-muted";
+
+    if (!emailSubject.value.trim()) {
+      emailSubject.value = "DefenSight AI - Security Analysis Report";
+    }
+    if (!emailBody.value.trim()) {
+      emailBody.value =
+        "Please find attached the DefenSight AI security analysis report.";
+    }
+
+    emailWidget.style.display =
+      emailWidget.style.display === "block" ? "none" : "block";
+  });
+
+  emailClose.addEventListener("click", () => {
+    emailWidget.style.display = "none";
+  });
+
+  async function sendReportEmail() {
+    const to = emailTo.value.trim();
+    const subject =
+      emailSubject.value.trim() || "DefenSight AI - Security Analysis Report";
+    const body =
+      emailBody.value.trim() ||
+      "Please find attached the DefenSight AI security analysis report.";
+
+    if (!to) {
+      emailStatus.className = "email-status text-danger";
+      emailStatus.textContent = "Please enter a recipient email.";
+      return;
+    }
+
+    emailStatus.className = "email-status text-muted";
+    emailStatus.textContent = "Sending report...";
+
+    try {
+      const resp = await fetch("{{ url_for('email_report') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to, subject, body }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.ok) {
+        emailStatus.className = "email-status text-success";
+        emailStatus.textContent = "Report emailed successfully.";
+      } else {
+        emailStatus.className = "email-status text-danger";
+        emailStatus.textContent = data.error || "Failed to send email.";
+      }
+    } catch (err) {
+      console.error(err);
+      emailStatus.className = "email-status text-danger";
+      emailStatus.textContent =
+        "Error sending email. Check server logs.";
+    }
+  }
+
+  /* ====== Formatting numbered paragraphs into lists (unchanged) ====== */
+
+  function convertParagraphToList(p, markerPrefix) {
+    const fullText = p.textContent.trim();
+
+    let introText = "";
+    let numberedPart = fullText;
+
+    if (markerPrefix && fullText.startsWith(markerPrefix)) {
+      introText = markerPrefix;
+      numberedPart = fullText.slice(markerPrefix.length).trim();
+    }
+
+    const items = numberedPart.match(/(\d\.\s[^]+?)(?=(\d\.\s|$))/g);
+    if (!items || items.length === 0) return false;
+
+    const intro = introText
+      ? (() => {
+          const ip = document.createElement("p");
+          ip.className = p.className;
+          ip.textContent = introText;
+          return ip;
+        })()
+      : null;
+
+    const ol = document.createElement("ol");
+    ol.style.marginTop = "6px";
+    ol.style.marginLeft = "1rem";
+
+    items.forEach(chunk => {
+      const li = document.createElement("li");
+      li.textContent = chunk.replace(/^\d\.\s*/, "").trim();
+      ol.appendChild(li);
+    });
+
+    if (intro) {
+      p.replaceWith(intro, ol);
+    } else {
+      p.replaceWith(ol);
+    }
+    return true;
+  }
+
+  function formatCriticalFindings() {
+    const container = document.getElementById("techContent");
+    if (!container) return;
+
+    const marker = "The top 5 most critical issues are:";
+    const paragraphs = container.getElementsByTagName("p");
+
+    for (const p of paragraphs) {
+      const txt = p.textContent.trim();
+      if (!txt.startsWith(marker)) continue;
+
+      convertParagraphToList(p, marker);
+      break;
+    }
+  }
+
+  function formatRecommendations() {
+    const containers = ["techContent", "execContent"];
+
+    containers.forEach(id => {
+      const container = document.getElementById(id);
+      if (!container) return;
+
+      const paragraphs = container.getElementsByTagName("p");
+      const marker = "Recommendations:";
+
+      for (const p of paragraphs) {
+        const txt = p.textContent.trim();
+        if (!txt.startsWith(marker)) continue;
+
+        const changed = convertParagraphToList(p, marker);
+        if (changed) break;
+      }
+    });
+  }
+
+  formatCriticalFindings();
+  formatRecommendations();
+</script>
+{% endblock %}

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>{% block title %}FirewallGPT{% endblock %}</title>
+
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+
+  <style>
+    /* =========================================================
+       PROFESSIONAL DARK THEME (NAVY + SECURITY GREEN)
+       ========================================================= */
+    :root {
+      --accent:        #22c55e;                      /* green-500         */
+      --accent-dark:   #16a34a;                      /* green-600         */
+      --accent-light:  rgba(34, 197, 94, 0.16);
+
+      --bg-dark:       #020617;                      /* slate-950         */
+      --bg-card:       #020617;                      /* card background   */
+
+      --text-light:    #f9fafb;                      /* almost white      */
+      --text-muted:    #9ca3af;                      /* gray-400          */
+
+      --border-soft:   #1f2937;                      /* slate-800 border  */
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #020617, #020617);
+      color: var(--text-light);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                   sans-serif;
+      min-height: 100vh;
+      padding-top: 60px; /* space for nav */
+    }
+
+    /* =========================================================
+       TOP NAV BAR
+       ========================================================= */
+    .nav-top {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 56px;
+      background: rgba(15, 23, 42, 0.98);
+      border-bottom: 1px solid var(--border-soft);
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 999;
+    }
+
+    /* brand block (logo + title) */
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-right: 12px;
+    }
+
+    /* clickable logo → home */
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    /* shield icon */
+    .nav-logo-icon {
+      width: 26px;
+      height: 30px;
+      background: linear-gradient(135deg, #22c55e, #4ade80);
+      -webkit-clip-path: polygon(50% 0%, 90% 30%, 90% 75%, 50% 100%, 10% 75%, 10% 30%);
+      clip-path: polygon(50% 0%, 90% 30%, 90% 75%, 50% 100%, 10% 75%, 10% 30%);
+      box-shadow: 0 0 12px rgba(34, 197, 94, 0.6);
+      animation: logoPulse 3.4s ease-in-out infinite;
+    }
+
+    .nav-logo-text {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 1.05rem;
+      letter-spacing: 0.04em;
+    }
+
+    .nav-logo:hover .nav-logo-text {
+      color: #bbf7d0;
+    }
+
+    .nav-logo:hover .nav-logo-icon {
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.9);
+    }
+
+    @keyframes logoPulse {
+      0%, 100% {
+        transform: translateY(0);
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.55);
+      }
+      50% {
+        transform: translateY(-1px);
+        box-shadow: 0 0 18px rgba(34, 197, 94, 0.95);
+      }
+    }
+
+    /* kept for compatibility (not used now, harmless) */
+    .nav-title {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 1.05rem;
+      margin-right: 18px;
+      letter-spacing: 0.04em;
+    }
+
+    .nav-link {
+      color: var(--text-muted);
+      text-decoration: none;
+      margin-left: 14px;
+      font-size: 0.9rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      transition: 0.16s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--accent);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .nav-spacer {
+      flex: 1;
+    }
+
+    /* back / forward controls */
+    .nav-ctl {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      margin-left: 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(15, 23, 42, 0.9);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: 0.16s ease;
+    }
+
+    .nav-ctl-icon {
+      font-size: 0.9rem;
+    }
+
+    .nav-ctl:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 10px rgba(34,197,94,0.35);
+    }
+
+    /* =========================================================
+       PAGE LAYOUT
+       ========================================================= */
+    .page-wrap {
+      max-width: 1150px;
+      margin: 0 auto;
+      padding: 18px 16px 28px;
+    }
+
+    .card-main {
+      background: var(--bg-card);
+      border-radius: 16px;
+      border: 1px solid var(--border-soft);
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.75);
+      margin-bottom: 18px;
+    }
+
+    .chip-step {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--accent);
+    }
+
+    .small-muted {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* =========================================================
+       BUTTONS
+       ========================================================= */
+    .btn-accent {
+      background: linear-gradient(135deg, var(--accent), #4ade80);
+      border: none;
+      padding: 9px 20px;
+      border-radius: 999px;
+      color: #022c22;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: 0 8px 20px rgba(22, 163, 74, 0.35);
+    }
+
+    .btn-accent:hover {
+      filter: brightness(1.05);
+      color: #022c22;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      padding: 7px 16px;
+      color: var(--accent);
+      font-size: 0.85rem;
+    }
+
+    .btn-ghost:hover {
+      background: var(--accent-light);
+      color: var(--text-light);
+    }
+
+    /* =========================================================
+       TABLES – FIXED VISIBILITY (parsed log page)
+       ========================================================= */
+    .table-wrap {
+      background: #020617;
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+      padding: 12px;
+      overflow: auto;
+    }
+
+    .table {
+      font-size: 0.8rem;
+      width: 100%;
+      color: var(--text-light);
+    }
+
+    .table th,
+    .table td {
+      border-color: rgba(55, 65, 81, 0.7) !important;
+      background-color: transparent !important;
+      color: #e5e7eb !important; /* ensure readable text */
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: #020617 !important;
+      z-index: 2;
+      font-weight: 500;
+    }
+
+    tbody tr:nth-child(odd) {
+      background: #020617 !important;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #020617 !important;
+    }
+
+    tbody tr:hover {
+      background: rgba(31, 41, 55, 0.95) !important; /* slate-800 */
+    }
+
+    /* =========================================================
+       HIGH-CONTRAST PROFESSIONAL BADGES (REPLACES OLD PILLS)
+       ========================================================= */
+    .pill-field,
+    .badge-type {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: rgba(59, 130, 246, 0.18);
+      border: 1px solid rgba(59, 130, 246, 0.45);
+      color: #dbeafe;
+      margin: 3px 4px 3px 0;
+      white-space: nowrap;
+      backdrop-filter: blur(2px);
+      transition: 0.15s ease;
+    }
+
+    .pill-field:hover,
+    .badge-type:hover {
+      background: rgba(59, 130, 246, 0.32);
+      border-color: rgba(59, 130, 246, 0.75);
+      color: #ffffff;
+    }
+
+    .stat-number {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-light);
+    }
+
+    /* =========================================================
+       "Choose files" upload zone (upload.html)
+       ========================================================= */
+    .upload-label {
+      display: block;
+      width: 100%;
+      padding: 30px 24px;
+      border-radius: 14px;
+      border: 2px dashed var(--accent);
+      background: linear-gradient(
+        135deg,
+        rgba(15, 23, 42, 0.96),
+        rgba(22, 163, 74, 0.35)
+      );
+      text-align: center;
+      color: var(--accent);
+      cursor: pointer;
+      transition: 0.16s ease;
+    }
+
+    .upload-label:hover {
+      background: linear-gradient(
+        135deg,
+        rgba(34, 197, 94, 0.25),
+        rgba(52, 211, 153, 0.32)
+      );
+      color: #022c22;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.9);
+    }
+
+    /* filled state after file selection */
+    .upload-label.active {
+      border: 2px solid var(--accent) !important;
+      background: rgba(34, 197, 94, 0.22) !important;
+      color: #d1fae5 !important;
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.35);
+    }
+
+    .upload-main-text {
+      font-size: 1.02rem;
+      font-weight: 600;
+    }
+
+    .upload-hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+  </style>
+
+  {% block head %}{% endblock %}
+</head>
+
+<body>
+  <!-- GLOBAL NAV -->
+  <div class="nav-top">
+    <div class="nav-brand">
+      <!-- Logo + brand → home -->
+      <a href="{{ url_for('upload_form') }}" class="nav-logo">
+        <span class="nav-logo-icon"></span>
+        <span class="nav-logo-text">DefenSight AI</span>
+      </a>
+    </div>
+
+    <a href="{{ url_for('upload_form') }}" class="nav-link">Upload</a>
+    <a href="{{ url_for('list_normalized_files') }}" class="nav-link">Normalized</a>
+    <a href="{{ url_for('analysis_view') }}" class="nav-link">Analysis</a>
+
+    <div class="nav-spacer"></div>
+
+    <a href="javascript:history.back()" class="nav-ctl">
+      <span class="nav-ctl-icon">←</span>
+      <span class="nav-ctl-label">Back</span>
+    </a>
+    <a href="javascript:history.forward()" class="nav-ctl">
+      <span class="nav-ctl-label">Forward</span>
+      <span class="nav-ctl-icon">→</span>
+    </a>
+  </div>
+
+  <div class="page-wrap">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

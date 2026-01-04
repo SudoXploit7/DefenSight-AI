@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Normalization View – DefenSight AI{% endblock %}
+
+{% block content %}
+<div class="card-main mb-3">
+  <div class="chip-step mb-1">Step 2 • Normalization &amp; Feature Extraction</div>
+  <div class="d-flex flex-wrap justify-content-between align-items-start">
+    <div class="me-3 mb-3">
+      <h2 class="h5 mb-1">
+        Parsed log:
+        <span class="text-info">{{ summary.file_name }}</span>
+      </h2>
+      <p class="small-muted mb-2">
+        Raw log converted into structured JSON. Below are the events and the
+        key fields DefenSight AI will use during analysis.
+      </p>
+    </div>
+    <div class="mb-3">
+      <a href="{{ url_for('list_normalized_files') }}" class="small-muted text-decoration-none">
+        ← Back to all normalized files
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card-main py-3">
+        <div class="stat-number">{{ summary.total_records }}</div>
+        <div class="small-muted">Total normalized events</div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card-main py-3">
+        <div class="stat-number">{{ summary.type_counts|length }}</div>
+        <div class="small-muted mb-1">Detected log categories</div>
+        <div>
+          {% for t, count in summary.type_counts.items() %}
+            <span class="badge-type">{{ t }} • {{ count }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card-main py-3">
+        <div class="stat-number">{{ summary.key_fields|length }}</div>
+        <div class="small-muted mb-1">Key fields extracted</div>
+        <div>
+          {% for field in summary.key_fields %}
+            <span class="pill-field">{{ field }}</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card-main">
+  <div class="table-wrap mb-2">
+    {% if rows %}
+      <table class="table table-sm table-borderless align-middle mb-0">
+        <thead>
+          <tr>
+            {% for col in columns %}
+              <th scope="col">{{ col }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr>
+              {% for col in columns %}
+                <td>{{ row[col] }}</td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="small-muted">
+        No entries found in this normalized file. The parser may have filtered everything out.
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center mt-2">
+    <div class="small-muted">
+      Showing up to 100 events from the normalized file for preview.
+    </div>
+    <a href="{{ url_for('analysis_view') }}" class="btn-accent">
+      Continue → AI Report &amp; Chat
+    </a>
+  </div>
+</div>
+{% endblock %}

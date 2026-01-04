@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Logs – DefenSight AI{% endblock %}
+
+{% block content %}
+
+<!-- LOGOUT BUTTON - Positioned left of forward/back buttons -->
+<div style="position: fixed; top: 20px; right: 220px; display: flex; align-items: center; gap: 15px; z-index: 1050; background: rgba(2, 6, 23, 0.95); padding: 10px 15px; border-radius: 10px; border: 1px solid rgba(34, 211, 238, 0.2);">
+    <span style="color: #22d3ee; font-weight: 500; font-size: 0.9rem;">
+        👤 {{ current_user.username }}
+    </span>
+    <a href="{{ url_for('logout') }}" style="
+        background: rgba(34, 211, 238, 0.1);
+        border: 1px solid rgba(34, 211, 238, 0.3);
+        color: #22d3ee;
+        padding: 6px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    " onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" 
+       onmouseout="this.style.background='rgba(34, 211, 238, 0.1)'">
+        Logout
+    </a>
+</div>
+
+<!-- BRANDING HERO -->
+<div class="card-main mb-3">
+  <div class="d-flex justify-content-between align-items-start flex-wrap">
+    <div class="me-3">
+      <div class="chip-step mb-2" style="color:#4ade80;">
+        AI-ASSISTED FIREWALL &amp; LOG INTELLIGENCE
+      </div>
+
+      <h2 class="h4 mb-2" style="color:#f9fafb;">
+        DefenSight AI – Autonomous Network Defense Copilot
+      </h2>
+
+      <p class="mb-1 fw-semibold" style="font-size:0.9rem; color:#bbf7d0;">
+        RAG-powered correlation · Groq LLM backend · Multi-source firewall, IDS &amp; VPN telemetry
+      </p>
+
+      <p class="mb-0 small-muted">
+        Generates technical and executive summaries, root-cause analysis, and remediation guidance
+        directly from your normalized security datasets.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- SESSION STATUS CARD -->
+<div class="card-main mb-3">
+  <div class="d-flex justify-content-between align-items-center">
+    <div>
+      <div class="chip-step mb-1">Current Session</div>
+      <p class="mb-0 small-muted">
+        <strong id="doc-count">{{ db_stats.total_documents }}</strong> documents indexed
+        {% if db_stats.has_data %}
+          <span class="badge bg-success ms-2">Active</span>
+        {% else %}
+          <span class="badge bg-secondary ms-2">Empty</span>
+        {% endif %}
+      </p>
+    </div>
+    <div>
+      <button 
+        onclick="clearSession()" 
+        class="btn btn-sm btn-outline-danger"
+        {% if not db_stats.has_data %}disabled{% endif %}
+        id="clear-btn">
+        Clear Session
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 1: UPLOAD CARD -->
+<div class="card-main">
+  <div class="chip-step mb-1">Step 1 • Upload &amp; Ingest Logs</div>
+  <h2 class="h5 mb-2">Upload your security logs</h2>
+  <p class="small-muted mb-3">
+    Select one or more raw log files (<code>CSV</code>, <code>JSON</code>, <code>XML</code>,
+    <code>LOG</code>, <code>TXT</code>). DefenSight AI will normalize and index them for analysis.
+  </p>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'warning' }} py-2">
+          {{ msg }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form action="{{ url_for('upload_file') }}"
+        method="post"
+        enctype="multipart/form-data"
+        id="upload-form">
+
+    <!-- SESSION MODE SELECTION -->
+    <div class="mb-3 p-3" style="background:#1e293b; border-radius:8px; border:1px solid #334155;">
+      <label class="form-label small-muted mb-2">Upload Mode:</label>
+      <div class="d-flex gap-3">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="session_mode" id="mode-append" value="append" checked>
+          <label class="form-check-label" for="mode-append" style="color:#f9fafb;">
+            Add to Existing
+            <small class="d-block small-muted">Append to current session</small>
+          </label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="session_mode" id="mode-new" value="new">
+          <label class="form-check-label" for="mode-new" style="color:#f9fafb;">
+            Start New Session
+            <small class="d-block small-muted">Clear old data first</small>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFESSIONAL UPLOAD BOX -->
+    <label id="uploadBox" class="upload-label mb-3" for="logfiles">
+      <div id="uploadBoxTitle" class="upload-main-text">
+        Click to choose files
+      </div>
+
+      <div class="upload-hint mt-1">
+        You can select multiple files at once · Supported: .xml · .json · .csv · .log · .txt
+      </div>
+
+      <div id="uploadPreview" class="upload-file-list mt-2" style="display:none;"></div>
+
+      <input
+        type="file"
+        id="logfiles"
+        name="logfiles"
+        multiple
+        hidden
+        accept=".xml,.json,.csv,.log,.txt"
+        onchange="onFilesChosen(this)"
+      />
+    </label>
+
+    <div class="d-flex justify-content-end">
+      <button type="submit" class="btn-accent">
+        Continue → Normalization
+      </button>
+    </div>
+  </form>
+
+  <div class="d-flex justify-content-between mt-3 small-muted">
+    <div>Step 1 of 3 • Upload → Normalized View → AI Report</div>
+    <div>Next: <span class="text-light">Parsed & Normalized files</span></div>
+  </div>
+</div>
+
+<!-- ========================= JAVASCRIPT ========================= -->
+<script>
+/* --- Professional Upload Box State Handler --- */
+function onFilesChosen(input) {
+  const box = document.getElementById("uploadBox");
+  const title = document.getElementById("uploadBoxTitle");
+  const preview = document.getElementById("uploadPreview");
+
+  if (!input.files || input.files.length === 0) {
+    // Reset state
+    box.classList.remove("active");
+    title.textContent = "Click to choose files";
+    preview.style.display = "none";
+    preview.innerHTML = "";
+    return;
+  }
+
+  // Activate visual style
+  box.classList.add("active");
+
+  // Update title
+  title.textContent =
+    input.files.length === 1
+      ? "1 file selected"
+      : `${input.files.length} files selected`;
+
+  // Show file list
+  preview.style.display = "block";
+  preview.innerHTML = [...input.files].map(f => "• " + f.name).join("<br>");
+}
+
+/* --- Clear Session Button Functionality (unchanged from your original) --- */
+async function clearSession() {
+  if (!confirm('This will delete all indexed data and start a fresh session. Continue?')) {
+    return;
+  }
+
+  const clearBtn = document.getElementById('clear-btn');
+  clearBtn.disabled = true;
+  clearBtn.textContent = 'Clearing...';
+
+  try {
+    const response = await fetch('/session/clear', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      document.getElementById('doc-count').textContent = '0';
+      alert('✅ ' + data.message);
+      location.reload();
+    } else {
+      alert('Error: ' + data.message);
+      clearBtn.disabled = false;
+      clearBtn.textContent = 'Clear Session';
+    }
+  } catch (error) {
+    alert('Error clearing session: ' + error.message);
+    clearBtn.disabled = false;
+    clearBtn.textContent = 'Clear Session';
+  }
+}
+</script>
+
+{% endblock %}

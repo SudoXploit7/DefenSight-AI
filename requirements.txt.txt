@@ -1,0 +1,12 @@
+flask
+flask-login
+flask-bcrypt
+flask-sqlalchemy
+chromadb
+sentence-transformers
+transformers
+torch
+markdown
+reportlab
+python-dotenv
+Werkzeug

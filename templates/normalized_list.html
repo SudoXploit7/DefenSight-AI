@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Normalized Files – DefenSight AI{% endblock %}
+
+{% block content %}
+
+<!-- LOGOUT BUTTON - Positioned left of forward/back buttons -->
+<div style="position: fixed; top: 20px; right: 220px; display: flex; align-items: center; gap: 15px; z-index: 1050; background: rgba(2, 6, 23, 0.95); padding: 10px 15px; border-radius: 10px; border: 1px solid rgba(34, 211, 238, 0.2);">
+    <span style="color: #22d3ee; font-weight: 500; font-size: 0.9rem;">
+        👤 {{ current_user.username }}
+    </span>
+    <a href="{{ url_for('logout') }}" style="
+        background: rgba(34, 211, 238, 0.1);
+        border: 1px solid rgba(34, 211, 238, 0.3);
+        color: #22d3ee;
+        padding: 6px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    " onmouseover="this.style.background='rgba(34, 211, 238, 0.2)'" 
+       onmouseout="this.style.background='rgba(34, 211, 238, 0.1)'">
+        Logout
+    </a>
+</div>
+
+<div class="card-main mb-3">
+  <div class="d-flex justify-content-between align-items-start flex-wrap mb-2">
+    <div>
+      <div class="chip-step mb-1">Step 2 • Normalized Dataset Overview</div>
+      <h2 class="h5 mb-1">Parsed &amp; normalized files</h2>
+      <p class="small-muted mb-0">
+        All uploaded logs converted into structured JSON. Select any file to inspect
+        events before generating the AI report.
+      </p>
+    </div>
+    <div class="mt-2 mt-sm-0">
+      <a href="{{ url_for('upload_form') }}" class="small-muted text-decoration-none">
+        + Upload more logs
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="card-main">
+  <div class="table-wrap mb-2">
+    {% if summaries %}
+      <table class="table table-sm table-borderless align-middle mb-0">
+        <thead>
+          <tr>
+            <th>File</th>
+            <th style="width: 90px;">Events</th>
+            <th style="width: 220px;">Types</th>
+            <th>Key fields</th>
+            <th style="width: 110px;" class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in summaries %}
+            <tr>
+              <td class="text-info fw-semibold">
+                {{ s.file_name }}
+              </td>
+              <td>{{ s.total_records }}</td>
+              <td>
+                {% for t, c in s.type_counts.items() %}
+                  <span class="badge-type">{{ t }} • {{ c }}</span>
+                {% endfor %}
+              </td>
+              <td>
+                {% for k in s.key_fields %}
+                  <span class="pill-field">{{ k }}</span>
+                {% endfor %}
+              </td>
+              <td class="text-center">
+                <a href="{{ url_for('normalization_view', fname=s.file_name) }}"
+                   class="btn btn-ghost btn-sm">
+                  View
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="small-muted">
+        No normalized files found yet. Try
+        <a href="{{ url_for('upload_form') }}" class="text-decoration-none">uploading some logs</a>.
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="d-flex justify-content-between align-items-center small-muted">
+    <div>Data loaded from: <code>normalized/</code></div>
+    <div>
+      <a href="{{ url_for('upload_form') }}" class="text-decoration-none me-3">
+        ← Back to Upload
+      </a>
+      <a href="{{ url_for('analysis_view') }}" class="btn-accent btn-sm">
+        Continue → AI Report &amp; Chat
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
